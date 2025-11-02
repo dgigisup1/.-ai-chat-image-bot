@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>AI Chat Image Bot</title>
+    <style>
+      body{font-family:Arial,Helvetica,sans-serif;margin:20px}
+      textarea{width:100%;height:80px}
+      .col{display:flex;gap:12px}
+      img,video{max-width:400px;display:block;margin-top:8px}
+    </style>
+  </head>
+  <body>
+    <h1>AI Chat Image Bot — Web UI</h1>
+
+    <section>
+      <h2>Chat</h2>
+      <input id="persona" placeholder="Optional persona (system prompt)" style="width:100%" />
+      <textarea id="message" placeholder="Message"></textarea>
+      <button id="btnChat">Send</button>
+      <pre id="chatOut"></pre>
+    </section>
+
+    <section>
+      <h2>Generate Code</h2>
+      <input id="codeLang" placeholder="Language (optional)" />
+      <textarea id="codePrompt" placeholder="Code prompt"></textarea>
+      <button id="btnCode">Generate</button>
+      <pre id="codeOut"></pre>
+    </section>
+
+    <section>
+      <h2>Generate Image</h2>
+      <textarea id="imagePrompt" placeholder="Image prompt"></textarea>
+      <button id="btnImage">Generate Image</button>
+      <div id="imageOut"></div>
+    </section>
+
+    <section>
+      <h2>Generate Video</h2>
+      <textarea id="videoPrompt" placeholder="Video prompt"></textarea>
+      <input id="videoDuration" placeholder="duration seconds (default 4)" />
+      <button id="btnVideo">Generate Video</button>
+      <div id="videoOut"></div>
+    </section>
+
+    <script>
+      async function postJson(path, body){
+        const resp = await fetch(path, {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
+        if(!resp.ok){
+          const text = await resp.text();
+          throw new Error(text || resp.statusText);
+        }
+        return resp.json();
+      }
+
+      document.getElementById('btnChat').onclick = async ()=>{
+        const message = document.getElementById('message').value;
+        const persona = document.getElementById('persona').value || undefined;
+        try{
+          const j = await postJson('/api/chat', {message, persona});
+          document.getElementById('chatOut').textContent = j.text;
+        }catch(e){alert('Error: '+e)}
+      }
+
+      document.getElementById('btnCode').onclick = async ()=>{
+        const prompt = document.getElementById('codePrompt').value;
+        const lang = document.getElementById('codeLang').value || undefined;
+        try{
+          const j = await postJson('/api/code', {prompt, lang});
+          document.getElementById('codeOut').textContent = j.text;
+        }catch(e){alert('Error: '+e)}
+      }
+
+      document.getElementById('btnImage').onclick = async ()=>{
+        const prompt = document.getElementById('imagePrompt').value;
+        try{
+          const j = await postJson('/api/image', {prompt});
+          const img = document.createElement('img');
+          img.src = j.data_url;
+          const out = document.getElementById('imageOut'); out.innerHTML=''; out.appendChild(img);
+        }catch(e){alert('Error: '+e)}
+      }
+
+      document.getElementById('btnVideo').onclick = async ()=>{
+        const prompt = document.getElementById('videoPrompt').value;
+        const duration = document.getElementById('videoDuration').value || 4;
+        try{
+          const j = await postJson('/api/video', {prompt, duration});
+          const v = document.createElement('video');
+          v.controls = true; v.src = j.data_url; const out = document.getElementById('videoOut'); out.innerHTML=''; out.appendChild(v);
+        }catch(e){alert('Error: '+e)}
+      }
+    </script>
+  </body>
+</html>

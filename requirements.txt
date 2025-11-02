@@ -1,0 +1,11 @@
+requests
+click
+pytest
+Pillow
+ffmpeg-python
+# Optional (uncomment to use OpenAI official client)
+# openai
+fastapi
+uvicorn[standard]
+aiofiles
+jinja2
